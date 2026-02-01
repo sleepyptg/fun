@@ -1,0 +1,116 @@
+--> Services
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+--> Variables
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+--> Support Functions
+
+--> Functions
+local function IsTeam(Target)
+    return Target.Team == LocalPlayer.Team
+end
+
+local function CreateHighlight(Player)
+    if Player.Character then
+        local Color = IsTeam(Player) and getgenv().Settings.Highlight_TeamColor or getgenv().Settings.Highlight_EnemyColor
+
+        local Highlight = Instance.new("Highlight")
+        Highlight.FillColor = Color
+        Highlight.FillTransparency = getgenv().Settings.Highlight_FillTransparency
+        Highlight.OutlineColor = Color
+        Highlight.OutlineTransparency = getgenv().Settings.Highlight_OutlineTransparency
+        Highlight.Parent = Player.Character
+    end
+end
+
+local function IsAlive(Character)
+	if not Character then return false end
+
+	local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+	if not Humanoid then return false end
+	if Humanoid.Health <= 0 then return false end
+
+	return true
+end
+
+local function AimLock(Target)
+    if not Target.Character then return end
+    if not Target.Character.PrimaryPart then return end
+    if not Target.Character[getgenv().Settings.AimLock_Part] then return end
+
+    local TargetPosition = Target.Character[getgenv().Settings.AimLock_Part].CFrame.Position
+    local CameraPosition = Camera.CFrame.Position
+
+    Camera.CFrame = CFrame.new(CameraPosition, TargetPosition)
+end
+
+local function GetClosestTarget()
+    local ClosestTarget
+    local LastMagnitude = math.huge
+
+    if not LocalPlayer.Character then return end
+    if not LocalPlayer.Character.PrimaryPart then return end
+
+    for _, Player in pairs(Players:GetPlayers()) do
+        if Player == LocalPlayer then continue end
+        if not Player.Character then continue end
+        if getgenv().Settings.AimLock_AliveCheck and not IsAlive(Player.Character) then continue end
+        if getgenv().Settings.AimLock_TeamCheck and IsTeam(Player) then continue end
+
+        local PlayerPosition = LocalPlayer.Character.PrimaryPart.CFrame.Position
+        local TargetPosition = Player.Character.PrimaryPart.CFrame.Position
+
+        local Magnitude = (PlayerPosition - TargetPosition).Magnitude
+        if Magnitude < LastMagnitude then
+            ClosestTarget = Player
+            LastMagnitude = Magnitude
+        end
+    end
+    
+    return ClosestTarget
+end
+
+--> Activation
+UserInputService.InputBegan:Connect(function(Input, GameProcessedEvent)
+    if GameProcessedEvent then return end
+
+    if Input.KeyCode == getgenv().Settings.AimLock_Key then
+        if getgenv().Settings.AimLock then
+            print("Disabled Aim Lock")
+            getgenv().Settings.AimLock = false
+        else
+            print("Enabled Aim Lock")
+            getgenv().Settings.AimLock = true
+        end
+    end
+end)
+
+--> Connection
+for _, Player in pairs(Players:GetPlayers()) do
+    task.spawn(CreateHighlight, Player)
+end
+
+Players.PlayerAdded:Connect(function(Player)
+    if Player.Character then
+        CreateHighlight(Player)
+    end
+
+    Player.CharacterAdded:Connect(function()
+        CreateHighlight(Player)
+    end)
+end)
+
+--> Main Loop
+RunService.PreRender:Connect(function()
+    if getgenv().Settings.AimLock then
+        local ClosestTarget = GetClosestTarget()
+
+        if ClosestTarget then
+            AimLock(ClosestTarget)
+        end
+    end
+end)
