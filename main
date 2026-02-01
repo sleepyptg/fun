@@ -87,6 +87,10 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessedEvent)
             getgenv().Settings.AimLock = true
         end
     end
+
+    if Input.KeyCode == getgenv().Settings.AimLock_TeamCheck_Key then
+        getgenv().Settings.AimLock_TeamCheck = not getgenv().Settings.AimLock_TeamCheck
+    end
 end)
 
 --> Connection
