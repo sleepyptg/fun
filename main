@@ -39,7 +39,7 @@ end
 
 local function AimLock(Target)
     if not Target.Character then return end
-    if not Target.Character.PrimaryPart then return end
+    if not Target.Character.HumanoidRootPart then return end
     if not Target.Character[getgenv().Settings.AimLock_Part] then return end
 
     local TargetPosition = Target.Character[getgenv().Settings.AimLock_Part].CFrame.Position
@@ -53,7 +53,7 @@ local function GetClosestTarget()
     local LastMagnitude = math.huge
 
     if not LocalPlayer.Character then return end
-    if not LocalPlayer.Character.PrimaryPart then return end
+    if not LocalPlayer.Character.HumanoidRootPart then return end
 
     for _, Player in pairs(Players:GetPlayers()) do
         if Player == LocalPlayer then continue end
@@ -61,8 +61,8 @@ local function GetClosestTarget()
         if getgenv().Settings.AimLock_AliveCheck and not IsAlive(Player.Character) then continue end
         if getgenv().Settings.AimLock_TeamCheck and IsTeam(Player) then continue end
 
-        local PlayerPosition = LocalPlayer.Character.PrimaryPart.CFrame.Position
-        local TargetPosition = Player.Character.PrimaryPart.CFrame.Position
+        local PlayerPosition = LocalPlayer.Character.HumanoidRootPart.CFrame.Position
+        local TargetPosition = Player.Character.HumanoidRootPart.CFrame.Position
 
         local Magnitude = (PlayerPosition - TargetPosition).Magnitude
         if Magnitude < LastMagnitude then
