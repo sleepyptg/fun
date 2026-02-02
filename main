@@ -94,11 +94,7 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessedEvent)
 end)
 
 --> Connection
-for _, Player in pairs(Players:GetPlayers()) do
-    task.spawn(CreateHighlight, Player)
-end
-
-Players.PlayerAdded:Connect(function(Player)
+local function PlayerAdded(Player)
     if Player.Character then
         CreateHighlight(Player)
     end
@@ -106,7 +102,13 @@ Players.PlayerAdded:Connect(function(Player)
     Player.CharacterAdded:Connect(function()
         CreateHighlight(Player)
     end)
-end)
+end
+
+for _, Player in pairs(Players:GetPlayers()) do
+    task.spawn(PlayerAdded, Player)
+end
+
+Players.PlayerAdded:Connect(PlayerAdded)
 
 --> Main Loop
 RunService.PreRender:Connect(function()
